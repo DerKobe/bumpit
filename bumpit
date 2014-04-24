@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+########################
+# Bump It!
+#
+# author: Philip Claren
+# date: 24.04.2014
+
+def error_and_out(msg)
+  puts "#{msg}\n"
+  exit
+end
+
+error_and_out('Must be in develop branch!') if `git rev-parse --abbrev-ref HEAD`.strip != 'develop'
+
+error_and_out('Not a clean state!') if `git status -s`.strip != ''
+
+error_and_out('No tags found!') if `git tag`.strip == ''
+
+current = `git describe --abbrev=0`.split('-').map(&:strip)
+error_and_out("No valid version found! Found: #{current[0].inspect}") unless current[0].match(/^[0-9]{1}\.[0-9]{1,2}$/)
+error_and_out("No alpha version found! Found: #{current[1].inspect}") if current[1] != 'alpha'
+
+# preconditions look good, carry on
+
+major, minor = current[0].split('.').map(&:to_i)
+
+`git checkout -b release-#{major}.#{minor}`
+`echo #{major}.#{minor}-beta > version`
+`git add version`
+`git commit -m 'Version #{major}.#{minor} beta'`
+`git tag -a '#{major}.#{minor}-beta' -m 'v#{major}.#{minor} beta'`
+`git push -u origin release-#{major}.#{minor}`
+`git push --tags`
+
+`git checkout develop`
+`git merge release-#{major}.#{minor}`
+`echo #{major}.#{minor+1}-alpha > version`
+`git add version`
+`git commit -m 'Version #{major}.#{minor+1} alpha'`
+`git tag -a '#{major}.#{minor+1}-alpha' -m 'v#{major}.#{minor+1} alpha'`
+`git push`
+`git push --tags`
