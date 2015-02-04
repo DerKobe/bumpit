@@ -1,7 +1,12 @@
 Bump It!
 =============
 
-Little ruby script for automating the tedious process in your software developing process when going from alpha to beta and simultaneously starting a new alpha.
+Bump It! is now a collection of scripts (two for now).
+Little ruby scripts for automating the tedious process in your software developing process
+
+```bumpit```: For when going from alpha to beta and simultaneously starting a new alpha.
+
+```mergeup```: For merging changes up the releases and finally into develop.
 
 Example Situation
 -----------------
@@ -13,7 +18,8 @@ With Bump It! it's just a matter of call ```bumpit``` ... the rest is automagic.
 Installation
 ------------
 
-Add the path where the bumpit script is located to your system's path environment variable. And ruby must be available on your system ... obviously :-)
+Add the path where the scripts are located to your system's path environment variable.
+Ruby must be available on your system ... obviously :-)
 
 Disclaimer
 ----------
