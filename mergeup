@@ -37,7 +37,7 @@ format_patch = 'git format-patch $(git merge-base %{to} %{from})..%{from} --stdo
 apply_check  = 'git apply --check -'
 
 def switch_to(branch)
-  `git checkout #{branch} 2> /dev/null`
+  `git checkout #{branch}`
   `git submodule update`
 end
 
@@ -46,7 +46,7 @@ releases.each_index do |index|
     switch_to releases[index+1]
     current_patch = format_patch % { from: releases[index], to: releases[index+1]}
 
-    unless `#{current_patch}`.empty? || (`#{current_patch} | #{apply_check} 2> /dev/null` && $?.exitstatus == 0)
+    unless `#{current_patch}`.empty? || (`#{current_patch} | #{apply_check}` && $?.exitstatus == 0)
       switch_to releases.first
       error_and_out("There's a problem when trying to merge #{releases[index]} into #{releases[index+1]}. Aborting.")
     end
@@ -59,11 +59,11 @@ releases.each_index do |index|
   unless releases[index+1].nil?
     switch_to releases[index+1]
     `git merge #{releases[index]}`
-    'git push'
+    `git push`
   end
 end
 
 switch_to releases.first
 
-puts "All merged: #{releases.join(' -> ')}"
+puts "\n\nAll merged: #{releases.join(' -> ')}"
 puts 'Have a nice day!'
