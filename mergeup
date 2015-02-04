@@ -59,6 +59,7 @@ releases.each_index do |index|
   unless releases[index+1].nil?
     switch_to releases[index+1]
     `git merge #{releases[index]}`
+    'git push'
   end
 end
 
