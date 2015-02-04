@@ -1,0 +1,68 @@
+#!/usr/bin/env ruby
+
+########################
+# Merge Up!
+#
+# author: Philip Claren
+# date: 04.02.2015
+
+def error_and_out(msg)
+  puts "#{msg}\n"
+  exit
+end
+
+error_and_out('Must not be in develop branch!') if `git rev-parse --abbrev-ref HEAD`.strip == 'develop'
+
+error_and_out('Not a clean state!') if `git status -s`.strip != ''
+
+current = `git describe --abbrev=0`.split('-').map(&:strip)
+error_and_out("No valid version found! Found: #{current[0].inspect}") unless current[0].match(/^[0-9]{1}\.[0-9]{1,2}$/)
+
+# -> preconditions look good, carry on
+
+major, minor = current[0].split('.').map(&:to_i)
+
+# get list of release branches
+command = 'git branch -a | grep -x "^\(\s\s\|\*\s\)release\-[0-9]\{1\}\.[0-9]\{1,2\}$"'
+
+releases = `#{command}`.split("\n").map do |s|
+  s.gsub('* ','').strip
+end.select do |s|
+  parts = s.gsub('release-','').split('.').map(&:to_i)
+  parts[0] >= major && parts[1] >= minor
+end + ['develop']
+
+
+format_patch = 'git format-patch $(git merge-base %{to} %{from})..%{from} --stdout'
+apply_check  = 'git apply --check -'
+
+def switch_to(branch)
+  `git checkout #{branch} 2> /dev/null`
+  `git submodule update`
+end
+
+releases.each_index do |index|
+  unless releases[index+1].nil?
+    switch_to releases[index+1]
+    current_patch = format_patch % { from: releases[index], to: releases[index+1]}
+
+    unless `#{current_patch}`.empty? || (`#{current_patch} | #{apply_check} 2> /dev/null` && $?.exitstatus == 0)
+      switch_to releases.first
+      error_and_out("There's a problem when trying to merge #{releases[index]} into #{releases[index+1]}. Aborting.")
+    end
+  end
+end
+
+switch_to releases.first
+
+releases.each_index do |index|
+  unless releases[index+1].nil?
+    switch_to releases[index+1]
+    `git merge #{releases[index]}`
+  end
+end
+
+switch_to releases.first
+
+puts "All merged: #{releases.join(' -> ')}"
+puts 'Have a nice day!'
