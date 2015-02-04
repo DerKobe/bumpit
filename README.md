@@ -2,7 +2,8 @@ Bump It!
 =============
 
 Bump It! is now a collection of scripts (two for now).
-Little ruby scripts for automating the tedious process in your software developing process
+
+Little ruby scripts for automating the tedious process in your software developing process.
 
 ```bumpit```: For when going from alpha to beta and simultaneously starting a new alpha.
 
